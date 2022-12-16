@@ -1,0 +1,193 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+    <div class="container">
+        <div class="login-box ">
+            <div class="d-flex justify-content-center align-items-center">
+                <h1 class="text-white">Buraydah colleges</h1>
+            </div>
+            <br>
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h2>web application firewall -scanning
+                        upload file </h2>
+                    <form>
+                        <div class="user-box">
+                            <input id="inputUrl" type="url" name="url">
+                            <label>Site Url</label>
+                        </div>
+                            <div class="user-box">
+                            <a href="#" id="fileBtn" class="btn btn-light text-dark">
+                                
+                                Upload File
+                            </a>
+                            <input type="file" id="fileInput" name="file" class="d-none">
+                            <table class="table text-white d-none" id="fileInfo">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Size</th>
+                                    <th>Type</th>
+                                </tr>
+                                <tr>
+                                    <td id="fileName"></td>
+                                    <td id="fileSize"></td>
+                                    <td id="fileType"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <a onclick="alertResult(this)" href="#">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            Scan
+                        </a>
+                    </form>
+                </div>
+                <div>
+                    <img src="~/images/download.jpg" class="img-fluid w-100" asp-append-version="true" alt="">
+                </div>
+            </div>
+            <br>
+            <br>
+            <hr  class="bg-white" />
+            <div style="color: white;">
+
+                <h6>Powerd by:</h6>
+                <ul>
+                    <li>Abdullah Obaid Al Harbi</li>
+                    <li>Hatem Suleiman Al-Rumaih</li>
+                    <li>Saleh Mubarak Al-Saad</li>
+                    <li>Abdullah Mohammed Al-Rasheed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    @section Scripts{
+        <script type="text/javascript">
+function alertResult(el){
+    
+    var txtInput = $("#inputUrl").val();
+    console.log(txtInput);
+    if (txtInput == "" && $("#fileInput").val() == "") {
+           Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please Enter Url Or File',
+                    footer: '<a href="">Why do I have this issue?</a>'
+                });
+    }else{
+         $(el).attr("disabled", true);
+    var file_data = $('#fileInput').prop('files')[0];   
+    var form_data = new FormData();                  
+    form_data.append('file', file_data);
+    form_data.append('url', txtInput);
+    $.ajax({
+        method:"POST",
+        url:`/Home/TestUrl`,
+        data: form_data,
+          cache: false,
+        contentType: false,
+        processData: false,
+        success: function(data) {
+             $(el).attr("disabled", false);
+            $("#fileInput").val("");
+            $("#inputUrl").val("");
+            if (data.error != undefined) {
+                 Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: `${data.error.message}`,
+                        footer: '<a href="">Why do I have this issue?</a>'
+                    });
+            }
+            if (data.response_code == undefined) {
+                if (data.data.attributes.stats.malicious <= 0) {
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: 'File NOT malicious',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: `Virustotal Malicious result.txt, 
+                        `,
+                        footer: '<a href="">Why do I have this issue?</a>'
+                    });
+                }
+            } else {
+                           if (data.response_code <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'NOT found please Scan it manually',
+                    footer: '<a href="">Why do I have this issue?</a>'
+                });
+            } 
+            else {
+                if (data.positives <= 0) {
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: 'NOT malicious',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: `Virustotal Malicious result.txt, 
+                        this Domains Detectd by ${data.positives} Solutions
+                        `,
+                    footer: '<a href="">Why do I have this issue?</a>'
+                });
+                }
+            }
+            }
+ 
+        },
+        error: function() {
+             Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: `Somthing Wronge Please Try Again`,
+                        footer: '<a href="">Why do I have this issue?</a>'
+                    });
+        }
+    });
+    }
+ 
+}
+
+const fileBtn = document.querySelector('#fileBtn')
+        const FileInput = document.querySelector('#fileInput');
+        fileBtn.onclick = () => {
+            FileInput.click();
+        }
+
+        FileInput.onchange = (e) => {
+            const { name, size, type } = e.target.files[0];
+            if (name || size || type) {
+                document.querySelector('#fileInfo').classList.remove('d-none')
+                document.querySelector('#fileName').innerText = name
+                document.querySelector('#fileSize').innerText = Math.round((size / 1024), 2) + ' MB'
+                document.querySelector('#fileType').innerText = type.split('/')[1]
+
+            } else {
+                document.querySelector('#fileInfo').classList.add('d-none')
+            }
+
+        }
+
+        function ResetFileInput() {
+            document.querySelector('form').reset()
+            document.querySelector('#fileInfo').classList.add('d-none')
+        }
+        </script>
+    }
